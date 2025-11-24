@@ -154,7 +154,7 @@ Password: admin123
 
 ### User
 ```
-Registration Code: REG2024001-REG2024005
+Registration Code: 2025, DAFTARUSER, ngopi
 ```
 **Access:** View catalog, request borrow, return books
 
