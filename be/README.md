@@ -81,7 +81,7 @@ VALUES ('admin', '$2b$10$YourHashedPasswordHere', 'admin');
 
 -- Insert registration codes
 INSERT INTO registration_codes (code) VALUES 
-('REG2024001'), ('REG2024002'), ('REG2024003'), ('REG2024004'), ('REG2024005');
+('2025'), ('DAFTARUSER'), ('ngopi');
 
 -- Insert sample books
 INSERT INTO books (title, author, isbn, description, status) VALUES 
@@ -111,7 +111,7 @@ bcrypt.hash('admin123', 10).then(hash => console.log(hash));
 
 Buat file `.env`:
 ```env
-PORT=5000
+PORT=3000
 DB_HOST=localhost
 DB_USER=root
 DB_PASSWORD=your_mysql_password
@@ -131,7 +131,7 @@ npm run dev
 npm start
 ```
 
-Server berjalan di: `http://localhost:5000`
+Server berjalan di: `http://localhost:3000`
 
 ---
 
@@ -139,7 +139,7 @@ Server berjalan di: `http://localhost:5000`
 
 ### Base URL
 ```
-http://localhost:5000/api
+http://localhost:3000/api
 ```
 
 ### Authentication
@@ -304,20 +304,20 @@ Authorization: Bearer {admin_token}
 
 **1. Login Admin:**
 ```
-POST http://localhost:5000/api/auth/login
+POST http://localhost:3000/api/auth/login
 Body: { "username": "admin", "password": "admin123" }
 ```
 Copy token dari response.
 
 **2. Get Books:**
 ```
-GET http://localhost:5000/api/books
+GET http://localhost:3000/api/books
 Headers: Authorization: Bearer {token}
 ```
 
 **3. Create Book:**
 ```
-POST http://localhost:5000/api/books
+POST http://localhost:3000/api/books
 Headers: Authorization: Bearer {admin_token}
 Body: {
   "title": "New Book",
@@ -329,16 +329,16 @@ Body: {
 
 ```bash
 # Login
-curl -X POST http://localhost:5000/api/auth/login \
+curl -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"admin123"}'
 
 # Get Books
-curl -X GET http://localhost:5000/api/books \
+curl -X GET http://localhost:3000/api/books \
   -H "Authorization: Bearer YOUR_TOKEN"
 
 # Create Book
-curl -X POST http://localhost:5000/api/books \
+curl -X POST http://localhost:3000/api/books \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"title":"Test Book","author":"Test Author"}'
@@ -395,7 +395,7 @@ users (1) ──── (N) borrowing_requests (N) ──── (1) books
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| PORT | Server port | 5000 |
+| PORT | Server port | 3000 |
 | DB_HOST | MySQL host | localhost |
 | DB_USER | MySQL username | root |
 | DB_PASSWORD | MySQL password | - |
