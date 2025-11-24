@@ -23,18 +23,18 @@ npm install
 
 ### API Base URL
 
-Default: `http://localhost:5000/api`
+Default: `http://localhost:3000/api`
 
 Edit `src/services/api.js` jika backend berjalan di URL lain:
 ```javascript
-const API_BASE_URL = 'http://localhost:5000/api'; // Ubah sesuai kebutuhan
+const API_BASE_URL = 'http://localhost:3000/api'; // Ubah sesuai kebutuhan
 ```
 
 ### Environment Variables (Optional)
 
 Buat `.env` jika perlu:
 ```env
-VITE_API_URL=http://localhost:5000/api
+VITE_API_URL=http://localhost:3000/api
 ```
 
 Update `src/services/api.js`:
@@ -50,7 +50,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 ```bash
 npm run dev
 ```
-App berjalan di: `http://localhost:3000`
+App berjalan di: `http://localhost:5173`
 
 ### Production Build
 ```bash
@@ -323,14 +323,6 @@ if (isAdmin) {
 ---
 
 ## 🔧 Troubleshooting
-
-### Port Already in Use
-```bash
-# Ubah port di vite.config.js
-server: {
-  port: 3001, // Ubah dari 3000
-}
-```
 
 ### CORS Error
 Pastikan backend CORS sudah configured untuk `http://localhost:3000`
