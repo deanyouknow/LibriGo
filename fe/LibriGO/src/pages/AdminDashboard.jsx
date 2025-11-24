@@ -14,6 +14,7 @@ import {
   Search,
 } from 'lucide-react';
 import { booksAPI, adminAPI } from '../services/api';
+import Swal from 'sweetalert2';
 import bg from '../assets/bg.jpg';
 
 const AdminDashboard = () => {
@@ -24,6 +25,12 @@ const AdminDashboard = () => {
   const [borrowings, setBorrowings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Pagination states
+  const [booksCurrentPage, setBooksCurrentPage] = useState(1);
+  const [requestsCurrentPage, setRequestsCurrentPage] = useState(1);
+  const [borrowingsCurrentPage, setBorrowingsCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   // Form states
   const [showAddBookForm, setShowAddBookForm] = useState(false);
@@ -64,7 +71,11 @@ const AdminDashboard = () => {
       setBorrowings(borrowingsRes.data.data);
     } catch (error) {
       console.error('Error loading data:', error);
-      alert('Gagal memuat data');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Gagal memuat data',
+      });
     } finally {
       setLoading(false);
     }
@@ -74,7 +85,11 @@ const AdminDashboard = () => {
     e.preventDefault();
     try {
       await booksAPI.create(bookForm);
-      alert('Buku berhasil ditambahkan');
+      Swal.fire({
+        icon: 'success',
+        title: 'Berhasil!',
+        text: 'Buku berhasil ditambahkan',
+      });
       setShowAddBookForm(false);
       setBookForm({
         title: '',
@@ -85,7 +100,11 @@ const AdminDashboard = () => {
       });
       loadData();
     } catch (error) {
-      alert(error.response?.data?.message || 'Gagal menambahkan buku');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.response?.data?.message || 'Gagal menambahkan buku',
+      });
     }
   };
 
@@ -93,7 +112,11 @@ const AdminDashboard = () => {
     e.preventDefault();
     try {
       await booksAPI.update(editingBook.book_id, bookForm);
-      alert('Buku berhasil diupdate');
+      Swal.fire({
+        icon: 'success',
+        title: 'Berhasil!',
+        text: 'Buku berhasil diupdate',
+      });
       setEditingBook(null);
       setShowAddBookForm(false);
       setBookForm({
@@ -105,18 +128,41 @@ const AdminDashboard = () => {
       });
       loadData();
     } catch (error) {
-      alert(error.response?.data?.message || 'Gagal mengupdate buku');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.response?.data?.message || 'Gagal mengupdate buku',
+      });
     }
   };
 
   const handleDeleteBook = async (bookId) => {
-    if (window.confirm('Yakin ingin menghapus buku ini?')) {
+    const result = await Swal.fire({
+      title: 'Konfirmasi Hapus',
+      text: 'Yakin ingin menghapus buku ini?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Ya, Hapus',
+      cancelButtonText: 'Batal'
+    });
+
+    if (result.isConfirmed) {
       try {
         await booksAPI.delete(bookId);
-        alert('Buku berhasil dihapus');
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil!',
+          text: 'Buku berhasil dihapus',
+        });
         loadData();
       } catch (error) {
-        alert(error.response?.data?.message || 'Gagal menghapus buku');
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.response?.data?.message || 'Gagal menghapus buku',
+        });
       }
     }
   };
@@ -124,21 +170,48 @@ const AdminDashboard = () => {
   const handleApproveRequest = async (requestId) => {
     try {
       await adminAPI.approveRequest(requestId);
-      alert('Request berhasil diapprove');
+      Swal.fire({
+        icon: 'success',
+        title: 'Berhasil!',
+        text: 'Request berhasil diapprove',
+      });
       loadData();
     } catch (error) {
-      alert(error.response?.data?.message || 'Gagal approve request');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.response?.data?.message || 'Gagal approve request',
+      });
     }
   };
 
   const handleRejectRequest = async (requestId) => {
-    if (window.confirm('Yakin ingin reject request ini?')) {
+    const result = await Swal.fire({
+      title: 'Konfirmasi Reject',
+      text: 'Yakin ingin reject request ini?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Ya, Reject',
+      cancelButtonText: 'Batal'
+    });
+
+    if (result.isConfirmed) {
       try {
         await adminAPI.rejectRequest(requestId);
-        alert('Request berhasil direject');
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil!',
+          text: 'Request berhasil direject',
+        });
         loadData();
       } catch (error) {
-        alert(error.response?.data?.message || 'Gagal reject request');
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.response?.data?.message || 'Gagal reject request',
+        });
       }
     }
   };
@@ -160,6 +233,24 @@ const AdminDashboard = () => {
       book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       book.author.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Pagination logic
+  const booksTotalPages = Math.ceil(filteredBooks.length / itemsPerPage);
+  const booksStartIndex = (booksCurrentPage - 1) * itemsPerPage;
+  const paginatedBooks = filteredBooks.slice(booksStartIndex, booksStartIndex + itemsPerPage);
+
+  const requestsTotalPages = Math.ceil(requests.length / itemsPerPage);
+  const requestsStartIndex = (requestsCurrentPage - 1) * itemsPerPage;
+  const paginatedRequests = requests.slice(requestsStartIndex, requestsStartIndex + itemsPerPage);
+
+  const borrowingsTotalPages = Math.ceil(borrowings.length / itemsPerPage);
+  const borrowingsStartIndex = (borrowingsCurrentPage - 1) * itemsPerPage;
+  const paginatedBorrowings = borrowings.slice(borrowingsStartIndex, borrowingsStartIndex + itemsPerPage);
+
+  // Reset pagination when search term changes
+  useEffect(() => {
+    setBooksCurrentPage(1);
+  }, [searchTerm]);
 
   if (loading && books.length === 0) {
     return (
@@ -491,7 +582,7 @@ const AdminDashboard = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                      {filteredBooks.map((book) => (
+                      {paginatedBooks.map((book) => (
                         <tr key={book.book_id} className="hover:bg-gray-50">
                           <td className="px-4 py-3 text-sm text-gray-900">
                             {book.title}
@@ -548,6 +639,31 @@ const AdminDashboard = () => {
                       Tidak ada buku ditemukan
                     </div>
                   )}
+
+                  {/* Books Pagination */}
+                  {booksTotalPages > 1 && (
+                    <div className="mt-6 flex items-center justify-between">
+                      <button
+                        onClick={() => setBooksCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={booksCurrentPage === 1}
+                        className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
+                      >
+                        Previous
+                      </button>
+
+                      <span className="text-gray-600">
+                        Halaman {booksCurrentPage} dari {booksTotalPages}
+                      </span>
+
+                      <button
+                        onClick={() => setBooksCurrentPage(prev => Math.min(prev + 1, booksTotalPages))}
+                        disabled={booksCurrentPage === booksTotalPages}
+                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -576,7 +692,7 @@ const AdminDashboard = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {requests.map((request) => (
+                    {paginatedRequests.map((request) => (
                       <tr key={request.request_id} className="hover:bg-gray-50">
                         <td className="px-4 py-3 text-sm text-gray-900">
                           {request.username}
@@ -643,6 +759,31 @@ const AdminDashboard = () => {
                     Tidak ada request peminjaman
                   </div>
                 )}
+
+                {/* Requests Pagination */}
+                {requestsTotalPages > 1 && (
+                  <div className="mt-6 flex items-center justify-between">
+                    <button
+                      onClick={() => setRequestsCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={requestsCurrentPage === 1}
+                      className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
+                    >
+                      Previous
+                    </button>
+
+                    <span className="text-gray-600">
+                      Halaman {requestsCurrentPage} dari {requestsTotalPages}
+                    </span>
+
+                    <button
+                      onClick={() => setRequestsCurrentPage(prev => Math.min(prev + 1, requestsTotalPages))}
+                      disabled={requestsCurrentPage === requestsTotalPages}
+                      className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -670,7 +811,7 @@ const AdminDashboard = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {borrowings.map((borrowing) => (
+                    {paginatedBorrowings.map((borrowing) => (
                       <tr
                         key={borrowing.borrowing_id}
                         className="hover:bg-gray-50"
@@ -717,6 +858,31 @@ const AdminDashboard = () => {
                 {borrowings.length === 0 && (
                   <div className="text-center py-12 text-gray-500">
                     Tidak ada data peminjaman
+                  </div>
+                )}
+
+                {/* Borrowings Pagination */}
+                {borrowingsTotalPages > 1 && (
+                  <div className="mt-6 flex items-center justify-between">
+                    <button
+                      onClick={() => setBorrowingsCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={borrowingsCurrentPage === 1}
+                      className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
+                    >
+                      Previous
+                    </button>
+
+                    <span className="text-gray-600">
+                      Halaman {borrowingsCurrentPage} dari {borrowingsTotalPages}
+                    </span>
+
+                    <button
+                      onClick={() => setBorrowingsCurrentPage(prev => Math.min(prev + 1, borrowingsTotalPages))}
+                      disabled={borrowingsCurrentPage === borrowingsTotalPages}
+                      className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
+                    >
+                      Next
+                    </button>
                   </div>
                 )}
               </div>

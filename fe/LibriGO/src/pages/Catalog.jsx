@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import { Search, BookOpen, User, Clock, CheckCircle } from 'lucide-react';
 import { booksAPI, borrowingAPI } from '../services/api';
+import Swal from 'sweetalert2';
 import bg from '../assets/bg.jpg';
 
 const Catalog = () => {
@@ -12,6 +13,8 @@ const Catalog = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all'); // all, available, borrowed
   const [requestingBookId, setRequestingBookId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -31,7 +34,11 @@ const Catalog = () => {
       setBooks(response.data.data);
     } catch (error) {
       console.error('Error loading books:', error);
-      alert('Gagal memuat katalog buku');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Gagal memuat katalog buku',
+      });
     } finally {
       setLoading(false);
     }
@@ -43,11 +50,19 @@ const Catalog = () => {
     setRequestingBookId(bookId);
     try {
       const response = await borrowingAPI.request({ book_id: bookId });
-      alert('Request peminjaman berhasil! Tunggu approval dari admin.');
+      Swal.fire({
+        icon: 'success',
+        title: 'Berhasil!',
+        text: 'Request peminjaman berhasil! Tunggu approval dari admin.',
+      });
       loadBooks(); // Reload untuk update status
     } catch (error) {
       const message = error.response?.data?.message || 'Gagal request peminjaman';
-      alert(message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: message,
+      });
     } finally {
       setRequestingBookId(null);
     }
@@ -66,6 +81,16 @@ const Catalog = () => {
 
     return matchSearch && matchStatus;
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredBooks.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedBooks = filteredBooks.slice(startIndex, startIndex + itemsPerPage);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus]);
 
   if (loading) {
     return (
@@ -201,8 +226,9 @@ const Catalog = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-fade-in-up delay-400">
-            {filteredBooks.map((book, index) => (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-fade-in-up delay-400">
+              {paginatedBooks.map((book, index) => (
               <div
                 key={book.book_id}
                 className="group bg-gradient-to-br from-white/95 to-gray-50/95 backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl border border-white/30 transform hover:-translate-y-2 transition-all duration-500 animate-fade-in-up"
@@ -324,7 +350,37 @@ const Catalog = () => {
                 </div>
               </div>
             ))}
-          </div>
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="bg-gradient-to-br from-white/95 to-blue-50/95 backdrop-blur-xl rounded-2xl shadow-xl p-6 mt-8 border border-white/20 animate-fade-in-up delay-600">
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 disabled:from-gray-300 disabled:to-gray-400 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none disabled:cursor-not-allowed transition-all duration-300"
+                  >
+                    Previous
+                  </button>
+
+                  <div className="flex items-center space-x-2">
+                    <span className="text-gray-600 font-medium">
+                      Halaman {currentPage} dari {totalPages}
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:from-gray-300 disabled:to-gray-400 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none disabled:cursor-not-allowed transition-all duration-300"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

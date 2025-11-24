@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import Navbar from '../components/Navbar';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import Navbar from "../components/Navbar";
 import {
   BookOpen,
   Calendar,
@@ -9,14 +9,19 @@ import {
   ArrowLeft,
   Clock,
   Package,
-} from 'lucide-react';
-import { borrowingAPI } from '../services/api';
-import bg from '../assets/bg.jpg';
+  AlertCircle,
+  XCircle,
+} from "lucide-react";
+import { borrowingAPI } from "../services/api";
+import Swal from "sweetalert2";
+import bg from "../assets/bg.jpg";
 
 const UserDashboard = () => {
-  const [activeTab, setActiveTab] = useState('borrowed');
+  const [activeTab, setActiveTab] = useState("borrowed");
   const [borrowedBooks, setBorrowedBooks] = useState([]);
   const [history, setHistory] = useState([]);
+  const [requests, setRequests] = useState([]);
+  const [requestFilter, setRequestFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [returningBookId, setReturningBookId] = useState(null);
 
@@ -25,9 +30,9 @@ const UserDashboard = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate('/login');
-    } else if (user?.role === 'admin') {
-      navigate('/admin/dashboard');
+      navigate("/login");
+    } else if (user?.role === "admin") {
+      navigate("/admin/dashboard");
     } else {
       loadData();
     }
@@ -36,39 +41,58 @@ const UserDashboard = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [borrowedRes, historyRes] = await Promise.all([
+      const [borrowedRes, historyRes, requestsRes] = await Promise.all([
         borrowingAPI.getMyBooks(),
         borrowingAPI.getHistory(),
+        borrowingAPI.getRequests(),
       ]);
 
       setBorrowedBooks(borrowedRes.data.data);
       setHistory(historyRes.data.data);
+      setRequests(requestsRes.data.data);
     } catch (error) {
-      console.error('Error loading data:', error);
-      alert('Gagal memuat data');
+      console.error("Error loading data:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Gagal memuat data",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const handleReturnBook = async (borrowingId) => {
-    if (
-      !window.confirm('Yakin ingin mengembalikan buku ini?')
-    ) {
-      return;
-    }
+    const result = await Swal.fire({
+      title: "Konfirmasi Pengembalian",
+      text: "Yakin ingin mengembalikan buku ini?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#28a745",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Ya, Kembalikan",
+      cancelButtonText: "Batal",
+    });
 
-    setReturningBookId(borrowingId);
-    try {
-      await borrowingAPI.returnBook(borrowingId);
-      alert('Buku berhasil dikembalikan!');
-      loadData(); // Reload data
-    } catch (error) {
-      alert(
-        error.response?.data?.message || 'Gagal mengembalikan buku'
-      );
-    } finally {
-      setReturningBookId(null);
+    if (result.isConfirmed) {
+      setReturningBookId(borrowingId);
+      try {
+        await borrowingAPI.returnBook(borrowingId);
+        Swal.fire({
+          icon: "success",
+          title: "Berhasil!",
+          text: "Buku berhasil dikembalikan!",
+        });
+        loadData(); // Reload data
+      } catch (error) {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: error.response?.data?.message || "Gagal mengembalikan buku",
+        });
+      } finally {
+        setReturningBookId(null);
+      }
     }
   };
 
@@ -95,7 +119,7 @@ const UserDashboard = () => {
       className="min-h-screen bg-cover bg-center bg-fixed relative overflow-hidden"
       style={{
         backgroundImage: `url(${bg})`,
-        backgroundColor: '#f4e8e0',
+        backgroundColor: "#f4e8e0",
       }}
     >
       {/* Animated background elements */}
@@ -119,7 +143,7 @@ const UserDashboard = () => {
               </p>
             </div>
             <button
-              onClick={() => navigate('/catalog')}
+              onClick={() => navigate("/catalog")}
               className="group flex items-center space-x-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-6 py-3 rounded-xl hover:shadow-lg transform hover:scale-105 transition-all duration-300"
             >
               <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
@@ -132,7 +156,9 @@ const UserDashboard = () => {
             <div className="group bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-blue-100 text-sm font-medium">Sedang Dipinjam</p>
+                  <p className="text-blue-100 text-sm font-medium">
+                    Sedang Dipinjam
+                  </p>
                   <p className="text-4xl font-bold mt-2 group-hover:scale-110 transition-transform">
                     {borrowedBooks.length}
                   </p>
@@ -146,9 +172,11 @@ const UserDashboard = () => {
             <div className="group bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-green-100 text-sm font-medium">Total Dikembalikan</p>
+                  <p className="text-green-100 text-sm font-medium">
+                    Total Dikembalikan
+                  </p>
                   <p className="text-4xl font-bold mt-2 group-hover:scale-110 transition-transform">
-                    {history.filter((h) => h.status === 'returned').length}
+                    {history.filter((h) => h.status === "returned").length}
                   </p>
                 </div>
                 <div className="w-16 h-16 bg-green-400/30 rounded-full flex items-center justify-center">
@@ -160,8 +188,12 @@ const UserDashboard = () => {
             <div className="group bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-purple-100 text-sm font-medium">Total Riwayat</p>
-                  <p className="text-4xl font-bold mt-2 group-hover:scale-110 transition-transform">{history.length}</p>
+                  <p className="text-purple-100 text-sm font-medium">
+                    Total Riwayat
+                  </p>
+                  <p className="text-4xl font-bold mt-2 group-hover:scale-110 transition-transform">
+                    {history.length}
+                  </p>
                 </div>
                 <div className="w-16 h-16 bg-purple-400/30 rounded-full flex items-center justify-center">
                   <Package className="w-8 h-8 text-purple-100" />
@@ -175,11 +207,11 @@ const UserDashboard = () => {
         <div className="bg-gradient-to-br from-white/95 to-blue-50/95 backdrop-blur-xl rounded-2xl shadow-xl mb-8 overflow-hidden border border-white/20 animate-fade-in-up delay-200">
           <div className="flex border-b border-gray-200/50">
             <button
-              onClick={() => setActiveTab('borrowed')}
+              onClick={() => setActiveTab("borrowed")}
               className={`flex-1 px-8 py-5 font-semibold transition-all duration-300 ${
-                activeTab === 'borrowed'
-                  ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg'
-                  : 'text-gray-700 hover:bg-gray-100/80 hover:text-green-600'
+                activeTab === "borrowed"
+                  ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg"
+                  : "text-gray-700 hover:bg-gray-100/80 hover:text-green-600"
               }`}
             >
               <span className="flex items-center justify-center space-x-2">
@@ -188,11 +220,11 @@ const UserDashboard = () => {
               </span>
             </button>
             <button
-              onClick={() => setActiveTab('history')}
+              onClick={() => setActiveTab("history")}
               className={`flex-1 px-8 py-5 font-semibold transition-all duration-300 ${
-                activeTab === 'history'
-                  ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg'
-                  : 'text-gray-700 hover:bg-gray-100/80 hover:text-green-600'
+                activeTab === "history"
+                  ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg"
+                  : "text-gray-700 hover:bg-gray-100/80 hover:text-green-600"
               }`}
             >
               <span className="flex items-center justify-center space-x-2">
@@ -200,11 +232,24 @@ const UserDashboard = () => {
                 <span>Riwayat Peminjaman</span>
               </span>
             </button>
+            <button
+              onClick={() => setActiveTab("requests")}
+              className={`flex-1 px-8 py-5 font-semibold transition-all duration-300 ${
+                activeTab === "requests"
+                  ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg"
+                  : "text-gray-700 hover:bg-gray-100/80 hover:text-green-600"
+              }`}
+            >
+              <span className="flex items-center justify-center space-x-2">
+                <AlertCircle className="w-5 h-5" />
+                <span>Status Request ({requests.length})</span>
+              </span>
+            </button>
           </div>
 
           <div className="p-8">
             {/* Borrowed Books Tab */}
-            {activeTab === 'borrowed' && (
+            {activeTab === "borrowed" && (
               <div className="animate-fade-in-up">
                 {borrowedBooks.length === 0 ? (
                   <div className="text-center py-16">
@@ -218,13 +263,23 @@ const UserDashboard = () => {
                       Mulai pinjam buku dari katalog
                     </p>
                     <button
-                      onClick={() => navigate('/catalog')}
+                      onClick={() => navigate("/catalog")}
                       className="group bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-3 rounded-xl hover:shadow-lg transform hover:scale-105 transition-all duration-300"
                     >
                       <span className="flex items-center justify-center space-x-2">
                         <span>Lihat Katalog</span>
-                        <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        <svg
+                          className="w-5 h-5 group-hover:translate-x-1 transition-transform"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M13 7l5 5m0 0l-5 5m5-5H6"
+                          />
                         </svg>
                       </span>
                     </button>
@@ -246,8 +301,8 @@ const UserDashboard = () => {
                               alt={borrowing.title}
                               className="h-full w-auto object-contain rounded-lg shadow-lg transform group-hover:scale-110 transition-transform duration-500 relative z-10"
                               onError={(e) => {
-                                e.target.style.display = 'none';
-                                e.target.nextSibling.style.display = 'flex';
+                                e.target.style.display = "none";
+                                e.target.nextSibling.style.display = "flex";
                               }}
                             />
                           ) : (
@@ -260,7 +315,7 @@ const UserDashboard = () => {
                           )}
                           {borrowing.cover_image && (
                             <div
-                              style={{ display: 'none' }}
+                              style={{ display: "none" }}
                               className="flex flex-col items-center justify-center text-gray-400 relative z-10"
                             >
                               <div className="w-20 h-20 bg-gradient-to-br from-gray-200 to-gray-300 rounded-xl flex items-center justify-center mb-3 shadow-lg">
@@ -283,10 +338,10 @@ const UserDashboard = () => {
                           <div className="flex items-center text-sm text-gray-500 mb-6 bg-blue-50 px-3 py-2 rounded-lg">
                             <Calendar className="w-4 h-4 mr-2 text-blue-600" />
                             <span>
-                              Dipinjam:{' '}
+                              Dipinjam:{" "}
                               {new Date(
-                                borrowing.borrow_date
-                              ).toLocaleDateString('id-ID')}
+                                borrowing.borrow_date,
+                              ).toLocaleDateString("id-ID")}
                             </span>
                           </div>
 
@@ -320,7 +375,7 @@ const UserDashboard = () => {
             )}
 
             {/* History Tab */}
-            {activeTab === 'history' && (
+            {activeTab === "history" && (
               <div className="animate-fade-in-up">
                 {history.length === 0 ? (
                   <div className="text-center py-16">
@@ -358,7 +413,11 @@ const UserDashboard = () => {
                       </thead>
                       <tbody className="divide-y divide-gray-200/50">
                         {history.map((item, index) => (
-                          <tr key={item.borrowing_id} className="hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 transition-colors duration-300 animate-fade-in-up" style={{ animationDelay: `${index * 50}ms` }}>
+                          <tr
+                            key={item.borrowing_id}
+                            className="hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 transition-colors duration-300 animate-fade-in-up"
+                            style={{ animationDelay: `${index * 50}ms` }}
+                          >
                             <td className="px-6 py-4 text-sm text-gray-900 font-medium">
                               {item.title}
                             </td>
@@ -368,14 +427,22 @@ const UserDashboard = () => {
                             <td className="px-6 py-4 text-sm text-gray-700">
                               <div className="flex items-center space-x-2">
                                 <Calendar className="w-4 h-4 text-blue-500" />
-                                <span>{new Date(item.borrow_date).toLocaleDateString('id-ID')}</span>
+                                <span>
+                                  {new Date(
+                                    item.borrow_date,
+                                  ).toLocaleDateString("id-ID")}
+                                </span>
                               </div>
                             </td>
                             <td className="px-6 py-4 text-sm text-gray-700">
                               {item.return_date ? (
                                 <div className="flex items-center space-x-2">
                                   <CheckCircle className="w-4 h-4 text-green-500" />
-                                  <span>{new Date(item.return_date).toLocaleDateString('id-ID')}</span>
+                                  <span>
+                                    {new Date(
+                                      item.return_date,
+                                    ).toLocaleDateString("id-ID")}
+                                  </span>
                                 </div>
                               ) : (
                                 <span className="text-gray-400">-</span>
@@ -384,12 +451,12 @@ const UserDashboard = () => {
                             <td className="px-6 py-4">
                               <span
                                 className={`inline-flex items-center px-4 py-2 rounded-full text-xs font-bold shadow-sm ${
-                                  item.status === 'borrowed'
-                                    ? 'bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800 border border-orange-300'
-                                    : 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300'
+                                  item.status === "borrowed"
+                                    ? "bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800 border border-orange-300"
+                                    : "bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300"
                                 }`}
                               >
-                                {item.status === 'borrowed' ? (
+                                {item.status === "borrowed" ? (
                                   <>
                                     <Clock className="w-3 h-3 mr-1" />
                                     Dipinjam
@@ -406,6 +473,217 @@ const UserDashboard = () => {
                         ))}
                       </tbody>
                     </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Requests Status Tab */}
+            {activeTab === "requests" && (
+              <div className="animate-fade-in-up">
+                {/* Filter Buttons */}
+                {requests.length > 0 && (
+                  <div className="mb-8 flex gap-4 justify-center flex-wrap">
+                    <button
+                      onClick={() => setRequestFilter("all")}
+                      className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+                        requestFilter === "all"
+                          ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                    >
+                      Semua ({requests.length})
+                    </button>
+                    <button
+                      onClick={() => setRequestFilter("pending")}
+                      className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 ${
+                        requestFilter === "pending"
+                          ? "bg-gradient-to-r from-yellow-500 to-yellow-600 text-white shadow-lg"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                    >
+                      <Clock className="w-4 h-4" />
+                      Menunggu (
+                      {requests.filter((r) => r.status === "pending").length})
+                    </button>
+                    <button
+                      onClick={() => setRequestFilter("approved")}
+                      className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 ${
+                        requestFilter === "approved"
+                          ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                    >
+                      <CheckCircle className="w-4 h-4" />
+                      Diterima (
+                      {requests.filter((r) => r.status === "approved").length})
+                    </button>
+                    <button
+                      onClick={() => setRequestFilter("rejected")}
+                      className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 ${
+                        requestFilter === "rejected"
+                          ? "bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                    >
+                      <XCircle className="w-4 h-4" />
+                      Ditolak (
+                      {requests.filter((r) => r.status === "rejected").length})
+                    </button>
+                  </div>
+                )}
+
+                {requests.length === 0 ? (
+                  <div className="text-center py-16">
+                    <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                      <AlertCircle className="w-12 h-12 text-gray-400" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-700 mb-3">
+                      Belum ada request peminjaman
+                    </h3>
+                    <p className="text-gray-500 text-lg mb-6">
+                      Request peminjaman Anda akan muncul di sini
+                    </p>
+                    <button
+                      onClick={() => navigate("/catalog")}
+                      className="group bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-3 rounded-xl hover:shadow-lg transform hover:scale-105 transition-all duration-300"
+                    >
+                      <span className="flex items-center justify-center space-x-2">
+                        <span>Lihat Katalog</span>
+                        <svg
+                          className="w-5 h-5 group-hover:translate-x-1 transition-transform"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M13 7l5 5m0 0l-5 5m5-5H6"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </div>
+                ) : (requestFilter === "all"
+                    ? requests
+                    : requests.filter((r) => r.status === requestFilter)
+                  ).length === 0 ? (
+                  <div className="text-center py-16">
+                    <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                      <AlertCircle className="w-12 h-12 text-gray-400" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-700 mb-3">
+                      Tidak ada request{" "}
+                      {requestFilter === "pending"
+                        ? "yang menunggu persetujuan"
+                        : requestFilter === "approved"
+                          ? "yang diterima"
+                          : requestFilter === "rejected"
+                            ? "yang ditolak"
+                            : ""}
+                    </h3>
+                    <p className="text-gray-500 text-lg">
+                      Tidak ada data untuk filter ini
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {(requestFilter === "all"
+                      ? requests
+                      : requests.filter((r) => r.status === requestFilter)
+                    ).map((request, index) => (
+                      <div
+                        key={request.request_id}
+                        className="group bg-gradient-to-br from-white/95 to-gray-50/95 rounded-xl shadow-lg overflow-hidden border border-white/30 hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-500 animate-fade-in-up"
+                        style={{ animationDelay: `${index * 100}ms` }}
+                      >
+                        {/* Book Cover */}
+                        <div className="relative h-48 bg-gradient-to-br from-blue-100 via-purple-50 to-pink-100 flex items-center justify-center p-6 overflow-hidden">
+                          <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/20 to-transparent transform -skew-x-12 group-hover:skew-x-12 transition-transform duration-700"></div>
+                          {request.cover_image ? (
+                            <img
+                              src={request.cover_image}
+                              alt={request.title}
+                              className="h-full w-auto object-contain rounded-lg shadow-lg transform group-hover:scale-110 transition-transform duration-500 relative z-10"
+                              onError={(e) => {
+                                e.target.style.display = "none";
+                                e.target.nextSibling.style.display = "flex";
+                              }}
+                            />
+                          ) : (
+                            <div className="flex flex-col items-center justify-center text-gray-400 relative z-10">
+                              <div className="w-20 h-20 bg-gradient-to-br from-gray-200 to-gray-300 rounded-xl flex items-center justify-center mb-3 shadow-lg">
+                                <BookOpen className="w-10 h-10" />
+                              </div>
+                              <p className="text-sm font-medium">No Cover</p>
+                            </div>
+                          )}
+                          {request.cover_image && (
+                            <div
+                              style={{ display: "none" }}
+                              className="flex flex-col items-center justify-center text-gray-400 relative z-10"
+                            >
+                              <div className="w-20 h-20 bg-gradient-to-br from-gray-200 to-gray-300 rounded-xl flex items-center justify-center mb-3 shadow-lg">
+                                <BookOpen className="w-10 h-10" />
+                              </div>
+                              <p className="text-sm font-medium">No Cover</p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Book Info */}
+                        <div className="p-6">
+                          <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-blue-800 transition-colors">
+                            {request.title}
+                          </h3>
+                          <p className="text-sm text-gray-600 mb-4 font-medium">
+                            {request.author}
+                          </p>
+
+                          <div className="flex items-center text-sm text-gray-500 mb-6 bg-blue-50 px-3 py-2 rounded-lg">
+                            <Calendar className="w-4 h-4 mr-2 text-blue-600" />
+                            <span>
+                              Diajukan:{" "}
+                              {new Date(
+                                request.request_date,
+                              ).toLocaleDateString("id-ID")}
+                            </span>
+                          </div>
+
+                          {/* Status Badge */}
+                          <div className="w-full">
+                            <span
+                              className={`inline-flex items-center px-4 py-3 rounded-xl text-sm font-bold shadow-md w-full justify-center ${
+                                request.status === "pending"
+                                  ? "bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300"
+                                  : request.status === "approved"
+                                    ? "bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300"
+                                    : "bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300"
+                              }`}
+                            >
+                              {request.status === "pending" ? (
+                                <>
+                                  <Clock className="w-4 h-4 mr-2" />
+                                  Menunggu Persetujuan
+                                </>
+                              ) : request.status === "approved" ? (
+                                <>
+                                  <CheckCircle className="w-4 h-4 mr-2" />
+                                  Disetujui
+                                </>
+                              ) : (
+                                <>
+                                  <XCircle className="w-4 h-4 mr-2" />
+                                  Ditolak
+                                </>
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
