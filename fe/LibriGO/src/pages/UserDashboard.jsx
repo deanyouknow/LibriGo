@@ -74,10 +74,17 @@ const UserDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-pink-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-green-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 relative overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-green-400/20 to-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-purple-400/20 to-pink-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        </div>
+        <div className="text-center relative z-10 animate-fade-in-up">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-20 w-20 border-4 border-green-200 border-t-green-500 mx-auto"></div>
+            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-500 animate-spin-slow"></div>
+          </div>
+          <p className="mt-6 text-gray-600 text-lg font-medium">Loading...</p>
         </div>
       </div>
     );
@@ -85,165 +92,196 @@ const UserDashboard = () => {
 
   return (
     <div
-      className="min-h-screen bg-cover bg-center"
+      className="min-h-screen bg-cover bg-center bg-fixed relative overflow-hidden"
       style={{
         backgroundImage: `url(${bg})`,
         backgroundColor: '#f4e8e0',
       }}
     >
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-green-400/10 to-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-purple-400/10 to-pink-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+      </div>
+
       <Navbar />
 
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-6 py-8 relative z-10">
         {/* Header */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-6 mb-8">
-          <div className="flex items-center justify-between mb-4">
+        <div className="bg-gradient-to-br from-white/95 to-green-50/95 backdrop-blur-xl rounded-2xl shadow-xl p-8 mb-8 border border-white/20 animate-fade-in-up">
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 to-green-800 bg-clip-text text-transparent mb-3">
                 Dashboard Saya
               </h1>
-              <p className="text-gray-600">
+              <p className="text-gray-600 text-lg">
                 Kelola buku yang sedang kamu pinjam
               </p>
             </div>
             <button
               onClick={() => navigate('/catalog')}
-              className="flex items-center space-x-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition"
+              className="group flex items-center space-x-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-6 py-3 rounded-xl hover:shadow-lg transform hover:scale-105 transition-all duration-300"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
               <span>Ke Katalog</span>
             </button>
           </div>
 
           {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+            <div className="group bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-blue-100 text-sm">Sedang Dipinjam</p>
-                  <p className="text-3xl font-bold mt-1">
+                  <p className="text-blue-100 text-sm font-medium">Sedang Dipinjam</p>
+                  <p className="text-4xl font-bold mt-2 group-hover:scale-110 transition-transform">
                     {borrowedBooks.length}
                   </p>
                 </div>
-                <BookOpen className="w-10 h-10 text-blue-200" />
+                <div className="w-16 h-16 bg-blue-400/30 rounded-full flex items-center justify-center">
+                  <BookOpen className="w-8 h-8 text-blue-100" />
+                </div>
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-4 text-white">
+            <div className="group bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-green-100 text-sm">Total Dikembalikan</p>
-                  <p className="text-3xl font-bold mt-1">
+                  <p className="text-green-100 text-sm font-medium">Total Dikembalikan</p>
+                  <p className="text-4xl font-bold mt-2 group-hover:scale-110 transition-transform">
                     {history.filter((h) => h.status === 'returned').length}
                   </p>
                 </div>
-                <CheckCircle className="w-10 h-10 text-green-200" />
+                <div className="w-16 h-16 bg-green-400/30 rounded-full flex items-center justify-center">
+                  <CheckCircle className="w-8 h-8 text-green-100" />
+                </div>
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-4 text-white">
+            <div className="group bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-purple-100 text-sm">Total Riwayat</p>
-                  <p className="text-3xl font-bold mt-1">{history.length}</p>
+                  <p className="text-purple-100 text-sm font-medium">Total Riwayat</p>
+                  <p className="text-4xl font-bold mt-2 group-hover:scale-110 transition-transform">{history.length}</p>
                 </div>
-                <Package className="w-10 h-10 text-purple-200" />
+                <div className="w-16 h-16 bg-purple-400/30 rounded-full flex items-center justify-center">
+                  <Package className="w-8 h-8 text-purple-100" />
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg mb-8 overflow-hidden">
-          <div className="flex border-b">
+        <div className="bg-gradient-to-br from-white/95 to-blue-50/95 backdrop-blur-xl rounded-2xl shadow-xl mb-8 overflow-hidden border border-white/20 animate-fade-in-up delay-200">
+          <div className="flex border-b border-gray-200/50">
             <button
               onClick={() => setActiveTab('borrowed')}
-              className={`flex-1 px-6 py-4 font-semibold transition ${
+              className={`flex-1 px-8 py-5 font-semibold transition-all duration-300 ${
                 activeTab === 'borrowed'
-                  ? 'bg-green-500 text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
+                  ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg'
+                  : 'text-gray-700 hover:bg-gray-100/80 hover:text-green-600'
               }`}
             >
-              Buku Dipinjam ({borrowedBooks.length})
+              <span className="flex items-center justify-center space-x-2">
+                <BookOpen className="w-5 h-5" />
+                <span>Buku Dipinjam ({borrowedBooks.length})</span>
+              </span>
             </button>
             <button
               onClick={() => setActiveTab('history')}
-              className={`flex-1 px-6 py-4 font-semibold transition ${
+              className={`flex-1 px-8 py-5 font-semibold transition-all duration-300 ${
                 activeTab === 'history'
-                  ? 'bg-green-500 text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
+                  ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg'
+                  : 'text-gray-700 hover:bg-gray-100/80 hover:text-green-600'
               }`}
             >
-              Riwayat Peminjaman
+              <span className="flex items-center justify-center space-x-2">
+                <Package className="w-5 h-5" />
+                <span>Riwayat Peminjaman</span>
+              </span>
             </button>
           </div>
 
-          <div className="p-6">
+          <div className="p-8">
             {/* Borrowed Books Tab */}
             {activeTab === 'borrowed' && (
-              <div>
+              <div className="animate-fade-in-up">
                 {borrowedBooks.length === 0 ? (
-                  <div className="text-center py-12">
-                    <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                  <div className="text-center py-16">
+                    <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                      <BookOpen className="w-12 h-12 text-gray-400" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-700 mb-3">
                       Belum ada buku yang dipinjam
                     </h3>
-                    <p className="text-gray-500 mb-4">
+                    <p className="text-gray-500 text-lg mb-6">
                       Mulai pinjam buku dari katalog
                     </p>
                     <button
                       onClick={() => navigate('/catalog')}
-                      className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition"
+                      className="group bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-3 rounded-xl hover:shadow-lg transform hover:scale-105 transition-all duration-300"
                     >
-                      Lihat Katalog
+                      <span className="flex items-center justify-center space-x-2">
+                        <span>Lihat Katalog</span>
+                        <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                      </span>
                     </button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {borrowedBooks.map((borrowing) => (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {borrowedBooks.map((borrowing, index) => (
                       <div
                         key={borrowing.borrowing_id}
-                        className="bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition"
+                        className="group bg-gradient-to-br from-white/95 to-gray-50/95 rounded-xl shadow-lg overflow-hidden border border-white/30 hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-500 animate-fade-in-up"
+                        style={{ animationDelay: `${index * 100}ms` }}
                       >
                         {/* Book Cover */}
-                        <div className="h-40 bg-gradient-to-br from-green-100 to-blue-100 flex items-center justify-center p-4">
+                        <div className="relative h-48 bg-gradient-to-br from-green-100 via-blue-50 to-purple-100 flex items-center justify-center p-6 overflow-hidden">
+                          <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/20 to-transparent transform -skew-x-12 group-hover:skew-x-12 transition-transform duration-700"></div>
                           {borrowing.cover_image ? (
                             <img
                               src={borrowing.cover_image}
                               alt={borrowing.title}
-                              className="h-full w-auto object-contain rounded"
+                              className="h-full w-auto object-contain rounded-lg shadow-lg transform group-hover:scale-110 transition-transform duration-500 relative z-10"
                               onError={(e) => {
                                 e.target.style.display = 'none';
                                 e.target.nextSibling.style.display = 'flex';
                               }}
                             />
                           ) : (
-                            <div className="flex flex-col items-center justify-center text-gray-400">
-                              <BookOpen className="w-16 h-16 mb-2" />
-                              <p className="text-xs">No Cover</p>
+                            <div className="flex flex-col items-center justify-center text-gray-400 relative z-10">
+                              <div className="w-20 h-20 bg-gradient-to-br from-gray-200 to-gray-300 rounded-xl flex items-center justify-center mb-3 shadow-lg">
+                                <BookOpen className="w-10 h-10" />
+                              </div>
+                              <p className="text-sm font-medium">No Cover</p>
                             </div>
                           )}
                           {borrowing.cover_image && (
                             <div
                               style={{ display: 'none' }}
-                              className="flex flex-col items-center justify-center text-gray-400"
+                              className="flex flex-col items-center justify-center text-gray-400 relative z-10"
                             >
-                              <BookOpen className="w-16 h-16 mb-2" />
-                              <p className="text-xs">No Cover</p>
+                              <div className="w-20 h-20 bg-gradient-to-br from-gray-200 to-gray-300 rounded-xl flex items-center justify-center mb-3 shadow-lg">
+                                <BookOpen className="w-10 h-10" />
+                              </div>
+                              <p className="text-sm font-medium">No Cover</p>
                             </div>
                           )}
                         </div>
 
                         {/* Book Info */}
-                        <div className="p-5">
-                          <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">
+                        <div className="p-6">
+                          <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-green-800 transition-colors">
                             {borrowing.title}
                           </h3>
-                          <p className="text-sm text-gray-600 mb-3">
+                          <p className="text-sm text-gray-600 mb-4 font-medium">
                             {borrowing.author}
                           </p>
 
-                          <div className="flex items-center text-sm text-gray-500 mb-4">
-                            <Calendar className="w-4 h-4 mr-2" />
+                          <div className="flex items-center text-sm text-gray-500 mb-6 bg-blue-50 px-3 py-2 rounded-lg">
+                            <Calendar className="w-4 h-4 mr-2 text-blue-600" />
                             <span>
                               Dipinjam:{' '}
                               {new Date(
@@ -259,17 +297,17 @@ const UserDashboard = () => {
                             disabled={
                               returningBookId === borrowing.borrowing_id
                             }
-                            className="w-full bg-green-500 text-white py-2 rounded-lg font-semibold hover:bg-green-600 transition disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center"
+                            className="group/btn w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center"
                           >
                             {returningBookId === borrowing.borrowing_id ? (
                               <>
                                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                Memproses...
+                                <span>Memproses...</span>
                               </>
                             ) : (
                               <>
-                                <CheckCircle className="w-5 h-5 mr-2" />
-                                Kembalikan Buku
+                                <CheckCircle className="w-5 h-5 mr-2 group-hover/btn:scale-110 transition-transform" />
+                                <span>Kembalikan Buku</span>
                               </>
                             )}
                           </button>
@@ -283,71 +321,85 @@ const UserDashboard = () => {
 
             {/* History Tab */}
             {activeTab === 'history' && (
-              <div>
+              <div className="animate-fade-in-up">
                 {history.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Clock className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                  <div className="text-center py-16">
+                    <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                      <Clock className="w-12 h-12 text-gray-400" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-700 mb-3">
                       Belum ada riwayat peminjaman
                     </h3>
-                    <p className="text-gray-500">
+                    <p className="text-gray-500 text-lg">
                       Riwayat peminjaman akan muncul di sini
                     </p>
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-gray-100">
+                    <table className="w-full bg-white/80 backdrop-blur-sm rounded-xl overflow-hidden shadow-lg">
+                      <thead className="bg-gradient-to-r from-gray-100 to-gray-200">
                         <tr>
-                          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                          <th className="px-6 py-4 text-left text-sm font-bold text-gray-800 uppercase tracking-wide">
                             Buku
                           </th>
-                          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                          <th className="px-6 py-4 text-left text-sm font-bold text-gray-800 uppercase tracking-wide">
                             Pengarang
                           </th>
-                          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                          <th className="px-6 py-4 text-left text-sm font-bold text-gray-800 uppercase tracking-wide">
                             Tanggal Pinjam
                           </th>
-                          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                          <th className="px-6 py-4 text-left text-sm font-bold text-gray-800 uppercase tracking-wide">
                             Tanggal Kembali
                           </th>
-                          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                          <th className="px-6 py-4 text-left text-sm font-bold text-gray-800 uppercase tracking-wide">
                             Status
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-200">
-                        {history.map((item) => (
-                          <tr key={item.borrowing_id} className="hover:bg-gray-50">
-                            <td className="px-4 py-3 text-sm text-gray-900">
+                      <tbody className="divide-y divide-gray-200/50">
+                        {history.map((item, index) => (
+                          <tr key={item.borrowing_id} className="hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 transition-colors duration-300 animate-fade-in-up" style={{ animationDelay: `${index * 50}ms` }}>
+                            <td className="px-6 py-4 text-sm text-gray-900 font-medium">
                               {item.title}
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-700">
+                            <td className="px-6 py-4 text-sm text-gray-700">
                               {item.author}
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-700">
-                              {new Date(item.borrow_date).toLocaleDateString(
-                                'id-ID'
+                            <td className="px-6 py-4 text-sm text-gray-700">
+                              <div className="flex items-center space-x-2">
+                                <Calendar className="w-4 h-4 text-blue-500" />
+                                <span>{new Date(item.borrow_date).toLocaleDateString('id-ID')}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-700">
+                              {item.return_date ? (
+                                <div className="flex items-center space-x-2">
+                                  <CheckCircle className="w-4 h-4 text-green-500" />
+                                  <span>{new Date(item.return_date).toLocaleDateString('id-ID')}</span>
+                                </div>
+                              ) : (
+                                <span className="text-gray-400">-</span>
                               )}
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-700">
-                              {item.return_date
-                                ? new Date(item.return_date).toLocaleDateString(
-                                    'id-ID'
-                                  )
-                                : '-'}
-                            </td>
-                            <td className="px-4 py-3">
+                            <td className="px-6 py-4">
                               <span
-                                className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                className={`inline-flex items-center px-4 py-2 rounded-full text-xs font-bold shadow-sm ${
                                   item.status === 'borrowed'
-                                    ? 'bg-orange-100 text-orange-700'
-                                    : 'bg-green-100 text-green-700'
+                                    ? 'bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800 border border-orange-300'
+                                    : 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300'
                                 }`}
                               >
-                                {item.status === 'borrowed'
-                                  ? 'Dipinjam'
-                                  : 'Dikembalikan'}
+                                {item.status === 'borrowed' ? (
+                                  <>
+                                    <Clock className="w-3 h-3 mr-1" />
+                                    Dipinjam
+                                  </>
+                                ) : (
+                                  <>
+                                    <CheckCircle className="w-3 h-3 mr-1" />
+                                    Dikembalikan
+                                  </>
+                                )}
                               </span>
                             </td>
                           </tr>
