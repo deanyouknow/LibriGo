@@ -152,7 +152,7 @@ Content-Type: application/json
 {
   "username": "johndoe",
   "password": "password123",
-  "registrationCode": "REG2024001"
+  "registrationCode": "2025"
 }
 ```
 
