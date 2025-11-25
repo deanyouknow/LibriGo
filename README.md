@@ -185,12 +185,6 @@ Registration Code: 2025, DAFTARUSER, ngopi
 
 ---
 
-## 📝 Lisensi
-
-MIT License © 2024 LibriGo Team
-
----
-
 <div align="center">
   <p>Made with ❤️ by LibriGo Team</p>
 </div>
